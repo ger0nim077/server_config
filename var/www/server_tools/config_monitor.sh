@@ -89,7 +89,7 @@ send_email() {
             success=true
         else
             log_message "Failed to send email notification for $subject (Action: $action) (attempt $attempt), retrying..."
-            sleep 5  # Wait for 5 seconds before retrying
+            #sleep 5  # Wait for 5 seconds before retrying
         fi
     done
 
