@@ -34,56 +34,43 @@ MONITORED_DIRS=(
     "/etc/nginx/sites-available"
 )
 
-# Function to check a specific file for changes
-check_file() {
-    local file="$1"
+
+# Function to check a specific file or directory for changes or deletions
+check_path() {
+    local path="$1"
     local changes_detected=false
 
-    echo "Checking file: $file" | tee -a "$LOG_FILE"
-    if [ -f "$file" ]; then
-        local destination="$REPO_DIR$file"
-        echo "Destination for $file is $destination" | tee -a "$LOG_FILE"
+    if [ -f "$path" ]; then
+        echo "Checking file: $path" | tee -a "$LOG_FILE"
+        local destination="$REPO_DIR$path"
+        echo "Destination for $path is $destination" | tee -a "$LOG_FILE"
         mkdir -p "$(dirname "$destination")"
         if [ ! -f "$destination" ]; then
-            echo "New file detected, copying: $file" | tee -a "$LOG_FILE"
-            cp "$file" "$destination"
+            echo "New file detected, copying: $path" | tee -a "$LOG_FILE"
+            cp "$path" "$destination"
             changes_detected=true
-        elif ! cmp -s "$file" "$destination"; then
-            echo "File modified, copying: $file" | tee -a "$LOG_FILE"
-            cp "$file" "$destination"
+        elif ! cmp -s "$path" "$destination"; then
+            echo "File modified, copying: $path" | tee -a "$LOG_FILE"
+            cp "$path" "$destination"
             changes_detected=true
         else
-            echo "File unchanged: $file" | tee -a "$LOG_FILE"
+            echo "File unchanged: $path" | tee -a "$LOG_FILE"
         fi
-    else
-        echo "File not found: $file" | tee -a "$LOG_FILE"
-    fi
-
-    if [ "$changes_detected" = true ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Function to check a specific directory for changes
-check_directory() {
-    local dir="$1"
-    local changes_detected=false
-
-    echo "Checking directory: $dir" | tee -a "$LOG_FILE"
-    if [ -d "$dir" ]; then
-        mkdir -p "$REPO_DIR$dir"
-        rsync_output=$(rsync -av --delete --exclude='.git' "$dir/" "$REPO_DIR$dir/")
+    elif [ -d "$path" ]; then
+        echo "Checking directory: $path" | tee -a "$LOG_FILE"
+        mkdir -p "$REPO_DIR$path"
+        rsync_output=$(rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
         if [ "$(echo "$rsync_output" | grep -v 'sending incremental file list')" != "" ]; then
             changes_detected=true
-            echo "Directory changes detected in: $dir" | tee -a "$LOG_FILE"
+            echo "Directory changes detected in: $path" | tee -a "$LOG_FILE"
             echo "$rsync_output" | tee -a "$LOG_FILE"
         else
-            echo "No changes in directory: $dir" | tee -a "$LOG_FILE"
+            echo "No changes in directory: $path" | tee -a "$LOG_FILE"
         fi
     else
-        echo "Directory not found: $dir" | tee -a "$LOG_FILE"
+        echo "Path deleted: $path" | tee -a "$LOG_FILE"
+        git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
+        changes_detected=true
     fi
 
     if [ "$changes_detected" = true ]; then
@@ -126,15 +113,11 @@ MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
 
 inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
 while read -r path action file; do
-    echo "Change detected in $path$file ($action)" | tee -a "$LOG_FILE"
+    full_path="$path$file"
+    echo "Change detected in $full_path ($action)" | tee -a "$LOG_FILE"
     sleep 5  # Adjust as needed to batch changes
 
-    if [ -f "$path$file" ]; then
-        check_file "$path$file"
-    elif [ -d "$path$file" ]; then
-        check_directory "$path$file"
-    fi
-
+    check_path "$full_path"
     change_detected=$?
     if [ $change_detected -eq 0 ]; then
         echo "Calling update_repo after change detected" | tee -a "$LOG_FILE"
