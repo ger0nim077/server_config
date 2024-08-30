@@ -175,11 +175,11 @@ while read -r full_path; do
         # If no exclusion pattern found, proceed with filtering and keyword matching
         log_message "No exclusion pattern found, processing the new lines."
 
-        # You can still apply additional filtering or directly process new_lines
-        filtered_lines="$new_lines"
+        # Reset the matched_log_entries for the current file
+        matched_log_entries=""
 
         if [[ -n "${LOG_FILES_KEYWORDS[$full_path]}" ]]; then
-            matched_log_entries=$(echo "$filtered_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
+            matched_log_entries=$(echo "$new_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
             log_message "Attempted Keyword Matching: $matched_log_entries"
         fi
 
@@ -195,5 +195,6 @@ while read -r full_path; do
     fi
     FILE_POSITIONS[$full_path]=$new_size
 done & echo $! > "$INOTIFYWAIT_PID_FILE"
+
 
 wait
