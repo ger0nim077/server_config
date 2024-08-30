@@ -110,10 +110,20 @@ send_email() {
 # Function to handle exit
 cleanup() {
     log_message "Stopping log monitoring"
-    kill $(cat "$INOTIFYWAIT_PID_FILE")
-    rm -f "$INOTIFYWAIT_PID_FILE"
+    if [ -f "$INOTIFYWAIT_PID_FILE" ]; then
+        PID=$(cat "$INOTIFYWAIT_PID_FILE")
+        if [ -e /proc/$PID ]; then
+            kill $PID
+        else
+            log_message "No such process with PID $PID"
+        fi
+        rm -f "$INOTIFYWAIT_PID_FILE"
+    else
+        log_message "PID file not found"
+    fi
     exit 0
 }
+
 
 # Set up signal handling for cleanup
 trap cleanup SIGINT SIGTERM
