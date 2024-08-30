@@ -149,10 +149,10 @@ handle_change() {
     fi
 }
 
-
 # -----------------------------------------------------------------------------
 # Function to update the Git repository
 # -----------------------------------------------------------------------------
+
 update_repo() {
     cd "$REPO_DIR" || { log_message "Failed to change directory to $REPO_DIR"; exit 1; }
 
