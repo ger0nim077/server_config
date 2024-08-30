@@ -197,6 +197,12 @@ if [[ $new_size -gt $old_size ]]; then
     else
         log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
     fi
+elif [[ $new_size -eq 0 ]]; then
+    # Handle log rotation (only for the specific file)
+    log_message "Log file size is zero, treating as log rotation for $full_path"
+    FILE_POSITIONS[$full_path]=0  # Reset the file position only for the affected file
+    # No need to reinitialize all file sizes, just handle the specific file
+
 else
     log_message "No size increase detected for $full_path"
 fi
