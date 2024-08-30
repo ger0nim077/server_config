@@ -65,6 +65,7 @@ log_message() {
 # -----------------------------------------------------------------------------
 # Function to send email with retry mechanism
 # -----------------------------------------------------------------------------
+# Function to send email with retry mechanism
 send_email() {
     local file="$1"
     local action="$2"
