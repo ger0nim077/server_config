@@ -35,33 +35,44 @@ MONITORED_DIRS=(
 )
 
 
-
-
 # Function to handle changes in files and directories
 handle_change() {
     local path="$1"
     local changes_detected=false
 
-    # If the path no longer exists, it was deleted
-    if [ ! -e "$path" ]; then
-        echo "Path deleted: $path" | tee -a "$LOG_FILE"
-        git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
-        changes_detected=true
-
-    # If the path is a file, handle it
-    elif [ -f "$path" ]; then
+    if [ -f "$path" ]; then
         echo "Checking file: $path" | tee -a "$LOG_FILE"
         local destination="$REPO_DIR$path"
+        echo "Destination for $path is $destination" | tee -a "$LOG_FILE"
         mkdir -p "$(dirname "$destination")"
-        cp "$path" "$destination"
-        echo "File copied: $path to $destination" | tee -a "$LOG_FILE"
-        changes_detected=true
-
-    # If the path is a directory, sync it
+        if [ ! -f "$destination" ]; then
+            echo "New file detected, copying: $path" | tee -a "$LOG_FILE"
+            cp "$path" "$destination"
+            changes_detected=true
+        elif ! cmp -s "$path" "$destination"; then
+            echo "File modified, copying: $path" | tee -a "$LOG_FILE"
+            cp "$path" "$destination"
+            changes_detected=true
+        else
+            echo "File unchanged: $path" | tee -a "$LOG_FILE"
+        fi
     elif [ -d "$path" ]; then
-        echo "Syncing directory: $path" | tee -a "$LOG_FILE"
-        rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/" 2>&1 | tee -a "$LOG_FILE"
-        changes_detected=true
+        echo "Checking directory: $path" | tee -a "$LOG_FILE"
+        mkdir -p "$REPO_DIR$path"
+        rsync_output=$(rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
+        if [ "$(echo "$rsync_output" | grep -v 'sending incremental file list')" != "" ]; then
+            changes_detected=true
+            echo "Directory changes detected in: $path" | tee -a "$LOG_FILE"
+            echo "$rsync_output" | tee -a "$LOG_FILE"
+        else
+            echo "No changes in directory: $path" | tee -a "$LOG_FILE"
+        fi
+    else
+        echo "Path deleted: $path" | tee -a "$LOG_FILE"
+        if [ -e "$REPO_DIR$path" ]; then
+            git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
+            changes_detected=true
+        fi
     fi
 
     if [ "$changes_detected" = true ]; then
