@@ -20,7 +20,7 @@ REPO_DIR="/var/www/BACKUP/server_config/"
 LOG_FILE="/var/log/config_monitor.log"
 
 # Email configuration
-EMAIL="your-email@example.com"
+EMAIL="tvasile@gmail.com"
 
 # List of individual files to monitor
 MONITORED_FILES=(
