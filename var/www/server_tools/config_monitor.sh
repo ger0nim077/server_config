@@ -196,8 +196,10 @@ done
 for dir in "${MONITORED_DIRS[@]}"; do
     handle_change "$dir" "Initial Sync"
 done
-
-update_repo
+# If there were any changes during initialization, update the repo and send email
+if [ -n "$CHANGES_SUMMARY" ]; then
+    update_repo
+fi
 
 # -----------------------------------------------------------------------------
 # Monitor for changes using inotifywait
@@ -208,10 +210,12 @@ inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
 while read -r path action file; do
     full_path="$path$file"
     log_message "Change detected in $full_path ($action)"
+    sleep 5  # Adjust as needed to batch changes
 
-    # Handle the change and send an email notification
     handle_change "$full_path" "$action"
-
-    log_message "Calling update_repo after change detected"
-    update_repo
+    change_detected=$?
+    if [ $change_detected -eq 0 ]; then
+        log_message "Calling update_repo after change detected"
+        update_repo
+    fi
 done
