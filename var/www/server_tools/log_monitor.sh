@@ -64,7 +64,7 @@ declare -A LOG_FILES_KEYWORDS=(
     ["/var/log/nginx/error.log"]="ERROR|ALERT"
     ["/var/log/php8.3-fpm.log"]="WARNING|ERROR"
     ["/var/log/chromedriver.log"]=""
-    ["/var/log/config_monitor.log"]=""
+
 )
 
 # Specific exclusion patterns for individual log files
