@@ -3,8 +3,13 @@ Description=Monitor and update server config backup
 After=network.target
 
 [Service]
-ExecStart="/var/www/server_tools/config_monitor.sh"
-Restart=always
+Type=simple
+ExecStart=/var/www/server_tools/config_monitor.sh
+Restart=on-failure
+User=root
+WorkingDirectory=/var/www/BACKUP/server_config
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
