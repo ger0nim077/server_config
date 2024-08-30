@@ -98,6 +98,7 @@ send_email() {
 # -----------------------------------------------------------------------------
 # Function to handle changes in files and directories
 # -----------------------------------------------------------------------------
+
 handle_change() {
     local path="$1"
     local action="$2"
