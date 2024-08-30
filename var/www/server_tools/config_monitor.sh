@@ -55,6 +55,9 @@ MONITORED_DIRS=(
     "/etc/nginx/sites-available"
 )
 
+# Global variable to store changes
+CHANGES_SUMMARY=""
+
 # -----------------------------------------------------------------------------
 # Function to log messages to the LOG_FILE
 # -----------------------------------------------------------------------------
@@ -68,30 +71,30 @@ log_message() {
 # -----------------------------------------------------------------------------
 
 send_email() {
-    local path="$1"
+    local subject="$1"
     local action="$2"
-    local subject="Server Config Change Detected: $path"
-    local body="A change was detected in the following:\n\nPath: $path\nAction: $action"
+    local changes_summary="$3"
+    local body="A change was detected in the following:\n\n$changes_summary\nAction: $action"
     local max_attempts=3
     local attempt=0
     local success=false
 
-    log_message "Preparing to send email notification for $path (Action: $action)"
+    log_message "Preparing to send email notification for $subject (Action: $action)"
 
     while [[ $attempt -lt $max_attempts && $success == false ]]; do
         ((attempt++))
         echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default "$EMAIL" 2>&1 | tee -a "$LOG_FILE"
         if [ $? -eq 0 ]; then
-            log_message "Successfully sent email notification for $path (Action: $action) (attempt $attempt)"
+            log_message "Successfully sent email notification for $subject (Action: $action) (attempt $attempt)"
             success=true
         else
-            log_message "Failed to send email notification for $path (Action: $action) (attempt $attempt), retrying..."
+            log_message "Failed to send email notification for $subject (Action: $action) (attempt $attempt), retrying..."
             sleep 5  # Wait for 5 seconds before retrying
         fi
     done
 
     if [[ $success == false ]]; then
-        log_message "Failed to send email notification for $path (Action: $action) after $max_attempts attempts"
+        log_message "Failed to send email notification for $subject (Action: $action) after $max_attempts attempts"
     fi
 }
 
@@ -109,6 +112,7 @@ handle_change() {
         git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
         changes_detected=true
         action="Deleted"
+        CHANGES_SUMMARY+="$path: $action\n"
     elif [ -f "$path" ]; then
         log_message "Handling file: $path"
         local destination="${REPO_DIR%/}$path"
@@ -119,6 +123,7 @@ handle_change() {
             log_message "File copied: $path to $destination"
             changes_detected=true
             action="Modified"
+            CHANGES_SUMMARY+="$path: $action\n"
         else
             log_message "No changes detected for $path"
         fi
@@ -131,6 +136,7 @@ handle_change() {
             log_message "Directory changes detected in: $path"
             echo "$rsync_output" | tee -a "$LOG_FILE"
             action="Directory Synced"
+            CHANGES_SUMMARY+="$path: $action\n"
         else
             log_message "No changes in directory: $path"
         fi
@@ -163,8 +169,11 @@ update_repo() {
             if [ $? -eq 0 ]; then
                 log_message "Changes committed and pushed to GitHub."
 
-                # Send an email notification for the committed changes
-                send_email "GitHub Repository" "Changes committed and pushed"
+                # Send an email notification for the committed changes with details
+                send_email "GitHub Repository" "Changes committed and pushed" "$CHANGES_SUMMARY"
+
+                # Clear the changes summary after sending the email
+                CHANGES_SUMMARY=""
             else
                 log_message "Git push failed"
             fi
@@ -175,7 +184,6 @@ update_repo() {
         log_message "No changes detected, nothing to commit."
     fi
 }
-
 # -----------------------------------------------------------------------------
 # Initial Sync: Sync files and directories before starting monitoring
 # -----------------------------------------------------------------------------
