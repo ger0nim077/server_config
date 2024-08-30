@@ -65,32 +65,32 @@ log_message() {
 # -----------------------------------------------------------------------------
 # Function to send email with retry mechanism
 # -----------------------------------------------------------------------------
-# Function to send email with retry mechanism
+
 send_email() {
-    local file="$1"
+    local path="$1"
     local action="$2"
-    local subject="Server Config Change Detected: $file"
-    local body="A change was detected in $file. Action: $action"
+    local subject="Server Config Change Detected: $path"
+    local body="A change was detected in the following:\n\nPath: $path\nAction: $action"
     local max_attempts=3
     local attempt=0
     local success=false
 
-    log_message "Preparing to send email notification for $file"
+    log_message "Preparing to send email notification for $path (Action: $action)"
 
     while [[ $attempt -lt $max_attempts && $success == false ]]; do
         ((attempt++))
         echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default "$EMAIL" 2>&1 | tee -a "$LOG_FILE"
         if [ $? -eq 0 ]; then
-            log_message "Successfully sent email notification for $file (attempt $attempt)"
+            log_message "Successfully sent email notification for $path (Action: $action) (attempt $attempt)"
             success=true
         else
-            log_message "Failed to send email notification for $file (attempt $attempt), retrying..."
+            log_message "Failed to send email notification for $path (Action: $action) (attempt $attempt), retrying..."
             sleep 5  # Wait for 5 seconds before retrying
         fi
     done
 
     if [[ $success == false ]]; then
-        log_message "Failed to send email notification for $file after $max_attempts attempts"
+        log_message "Failed to send email notification for $path (Action: $action) after $max_attempts attempts"
     fi
 }
 
