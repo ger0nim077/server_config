@@ -138,17 +138,6 @@ handle_change() {
         fi
     fi
 
-    # Send email if changes were detected
-    if [ "$changes_detected" = true ]; then
-        log_message "Calling send_email for $path with action $action"
-        send_email "$path" "$action"
-        return 0
-    else
-        return 1
-    fi
-}
-
-
 
 # -----------------------------------------------------------------------------
 # Function to update the Git repository
