@@ -111,6 +111,7 @@ handle_change() {
         local destination="${REPO_DIR%/}$path"
         mkdir -p "$(dirname "$destination")"
 
+        # Check if the file has actual content changes
         if [ ! -f "$destination" ] || ! cmp -s "$path" "$destination"; then
             cp "$path" "$destination"
             log_message "File copied: $path to $destination"
@@ -120,9 +121,11 @@ handle_change() {
         fi
     elif [ -d "$path" ]; then
         log_message "Syncing directory: $path"
-        rsync_output=$(rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
-
-        # Check if any actual files were changed or transferred
+        
+        # Use rsync with --checksum to compare file content rather than timestamps
+        rsync_output=$(rsync -ac --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
+        
+        # Check if rsync reported any meaningful changes
         if [ "$(echo "$rsync_output" | grep -v -e '^sending incremental file list' -e '^$' -e '^./$')" != "" ]; then
             changes_detected=true
             log_message "Directory changes detected in: $path"
@@ -141,6 +144,7 @@ handle_change() {
         return 1
     fi
 }
+
 
 
 # -----------------------------------------------------------------------------
