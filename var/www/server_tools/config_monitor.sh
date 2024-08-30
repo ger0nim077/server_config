@@ -110,7 +110,7 @@ handle_change() {
         log_message "Handling file: $path"
         local destination="${REPO_DIR%/}$path"
         mkdir -p "$(dirname "$destination")"
-        
+
         if [ ! -f "$destination" ] || ! cmp -s "$path" "$destination"; then
             cp "$path" "$destination"
             log_message "File copied: $path to $destination"
@@ -121,8 +121,9 @@ handle_change() {
     elif [ -d "$path" ]; then
         log_message "Syncing directory: $path"
         rsync_output=$(rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
-        
-        if [ "$(echo "$rsync_output" | grep -v 'sending incremental file list')" != "" ]; then
+
+        # Check if any actual files were changed or transferred
+        if [ "$(echo "$rsync_output" | grep -v -e '^sending incremental file list' -e '^$' -e '^./$')" != "" ]; then
             changes_detected=true
             log_message "Directory changes detected in: $path"
             echo "$rsync_output" | tee -a "$LOG_FILE"
@@ -140,6 +141,7 @@ handle_change() {
         return 1
     fi
 }
+
 
 # -----------------------------------------------------------------------------
 # Function to update the Git repository
