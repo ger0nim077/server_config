@@ -224,6 +224,6 @@ while read -r full_path; do
 done & echo $! > "$INOTIFYWAIT_PID_FILE"
 
 # At the end of your script, add:
-#update_timestamp
+update_timestamp
 
 wait
