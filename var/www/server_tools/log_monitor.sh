@@ -190,6 +190,11 @@ while read -r full_path; do
             log_message "Attempted Keyword Matching: $matched_log_entries"
         fi
 
+        if [[ -n "${LOG_FILES_KEYWORDS[$full_path]}" ]]; then
+            matched_log_entries=$(echo "$new_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
+            log_message "Attempted Keyword Matching: $matched_log_entries"
+        fi
+
         # If relevant content is found (either by matching keywords or by treating all new lines as relevant)
         if [[ -n "$matched_log_entries" ]]; then
             log_message "Modification detected with relevant content in $full_path"
@@ -199,20 +204,6 @@ while read -r full_path; do
             log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
         fi
 
-
-
-        if [[ -n "${LOG_FILES_KEYWORDS[$full_path]}" ]]; then
-            matched_log_entries=$(echo "$new_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
-            log_message "Attempted Keyword Matching: $matched_log_entries"
-        fi
-
-        if [[ -n "$matched_log_entries" ]]; then
-            log_message "Modification detected with relevant content in $full_path"
-            send_email "$full_path" "$matched_log_entries"
-            LAST_NOTIFICATION[$full_path]=$current_time  # Update the last notification time
-        else
-            log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
-        fi
     else
         log_message "No size increase detected for $full_path"
     fi
