@@ -165,6 +165,9 @@ update_repo() {
             git push origin master 2>&1 | tee -a "$LOG_FILE"
             if [ $? -eq 0 ]; then
                 log_message "Changes committed and pushed to GitHub."
+
+                # Send an email notification for the committed changes
+                send_email "GitHub Repository" "Changes committed and pushed"
             else
                 log_message "Git push failed"
             fi
@@ -175,6 +178,7 @@ update_repo() {
         log_message "No changes detected, nothing to commit."
     fi
 }
+
 
 # -----------------------------------------------------------------------------
 # Initial Sync: Sync files and directories before starting monitoring
