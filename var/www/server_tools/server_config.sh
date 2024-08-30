@@ -6,6 +6,7 @@ LOG_FILE="/var/log/config_monitor.log"
 MONITORED_FILES=(
     "/etc/fail2ban/jail.local"
     "/etc/nginx/nginx.conf"
+    "/var/www/server_tools/test"  # Example of a newly added file
 )
 
 MONITORED_DIRS=(
@@ -13,7 +14,6 @@ MONITORED_DIRS=(
     "/etc/nginx/sites-available"
 )
 
-# Function to copy files and directories into the repo directory
 copy_new_files() {
     echo "Checking for newly added or changed files and directories..." | tee -a "$LOG_FILE"
     local changes_detected=false
@@ -60,14 +60,17 @@ copy_new_files() {
     echo "$changes_detected"
 }
 
-# Function to update Git repository
 update_repo() {
     cd "$REPO_DIR" || { echo "Failed to change directory to $REPO_DIR" | tee -a "$LOG_FILE"; exit 1; }
 
-    git add -A
+    git status 2>&1 | tee -a "$LOG_FILE"
+    echo "Staging all changes..." | tee -a "$LOG_FILE"
+    git add -A 2>&1 | tee -a "$LOG_FILE"
+    git status 2>&1 | tee -a "$LOG_FILE"
+
     if ! git diff-index --quiet HEAD --; then
         echo "Changes detected, committing..." | tee -a "$LOG_FILE"
-        git commit -m "Update server files - $(date)" 2>&1 | tee -a "$LOG_FILE"
+        git commit -m "Automated commit: $(date)" 2>&1 | tee -a "$LOG_FILE"
         echo "Pushing changes to GitHub..." | tee -a "$LOG_FILE"
         git push origin master 2>&1 | tee -a "$LOG_FILE"
         echo "Changes committed and pushed to GitHub." | tee -a "$LOG_FILE"
@@ -90,7 +93,7 @@ MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
 inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
 while read -r path action file; do
     echo "Change detected in $path$file ($action)" | tee -a "$LOG_FILE"
-    sleep 5  # Adjust as needed to batch changes
+    sleep 5
     change_detected=$(copy_new_files)
     if [ "$change_detected" = true ]; then
         update_repo
