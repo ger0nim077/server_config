@@ -78,7 +78,7 @@ send_email() {
 
     while [[ $attempt -lt $max_attempts && $success == false ]]; do
         ((attempt++))
-        echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default -v "$EMAIL" 2>&1 | tee -a "$LOG_FILE"
+        echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default "$EMAIL" 2>&1 | tee -a "$LOG_FILE"
         if [ $? -eq 0 ]; then
             log_message "Successfully sent email notification for $file (attempt $attempt)"
             success=true
