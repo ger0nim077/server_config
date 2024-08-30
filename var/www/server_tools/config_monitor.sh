@@ -84,12 +84,15 @@ send_email() {
     while [[ $attempt -lt $max_attempts && $success == false ]]; do
         ((attempt++))
         echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default "$EMAIL" 2>&1 | tee -a "$LOG_FILE"
-        if [ $? -eq 0 ]; then
+        msmtp_exit_status=$?
+
+        if [ $msmtp_exit_status -eq 0 ]; then
             log_message "Successfully sent email notification for $subject (Action: $action) (attempt $attempt)"
             success=true
         else
             log_message "Failed to send email notification for $subject (Action: $action) (attempt $attempt), retrying..."
-            #sleep 5  # Wait for 5 seconds before retrying
+            # Optional sleep to delay retry
+            sleep 5
         fi
     done
 
@@ -97,6 +100,7 @@ send_email() {
         log_message "Failed to send email notification for $subject (Action: $action) after $max_attempts attempts"
     fi
 }
+
 
 # -----------------------------------------------------------------------------
 # Function to handle changes in files and directories
