@@ -155,44 +155,52 @@ while read -r full_path; do
         continue  # Skip to the next iteration
     fi
 
-    # Regular file growth handling
-    if [[ $new_size -gt $old_size ]]; then
-        added_bytes=$((new_size - old_size))
-        log_message "Old Size: $old_size, New Size: $new_size, Added Bytes: $added_bytes for $full_path"
+   # Regular file growth handling
+if [[ $new_size -gt $old_size ]]; then
+    added_bytes=$((new_size - old_size))
+    log_message "Old Size: $old_size, New Size: $new_size, Added Bytes: $added_bytes for $full_path"
 
-        # Extract and clean up new lines
-        new_lines=$(tail -c "$added_bytes" "$full_path" | tr -cd '\11\12\15\40-\176')
-        log_message "Extracted and Cleaned Up New Lines: $new_lines"
+    # Extract and clean up new lines
+    new_lines=$(tail -c "$added_bytes" "$full_path" | tr -cd '\11\12\15\40-\176')
+    log_message "Extracted and Cleaned Up New Lines: $new_lines"
 
-        # Check the entire block for exclusion patterns
-        if [[ -n "${EXCLUSION_PATTERNS[$full_path]}" ]]; then
-            if echo "$new_lines" | grep -qE "${EXCLUSION_PATTERNS[$full_path]}"; then
-                log_message "Exclusion pattern found in $full_path, discarding the entire block of new lines."
-                continue  # Skip further processing of this block
-            fi
+    # Check the entire block for exclusion patterns
+    if [[ -n "${EXCLUSION_PATTERNS[$full_path]}" ]]; then
+        if echo "$new_lines" | grep -qE "${EXCLUSION_PATTERNS[$full_path]}"; then
+            log_message "Exclusion pattern found in $full_path, discarding the entire block of new lines."
+            continue  # Skip further processing of this block
         fi
-
-        # If no exclusion pattern found, proceed with filtering and keyword matching
-        log_message "No exclusion pattern found, processing the new lines."
-
-        # Reset the matched_log_entries for the current file
-        matched_log_entries=""
-
-        if [[ -n "${LOG_FILES_KEYWORDS[$full_path]}" ]]; then
-            matched_log_entries=$(echo "$new_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
-            log_message "Attempted Keyword Matching: $matched_log_entries"
-        fi
-
-        if [[ -n "$matched_log_entries" ]]; then
-            log_message "Modification detected with relevant content in $full_path"
-            send_email "$full_path" "$matched_log_entries"
-            LAST_NOTIFICATION[$full_path]=$current_time  # Update the last notification time
-        else
-            log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
-        fi
-    else
-        log_message "No size increase detected for $full_path"
     fi
+
+    # If no exclusion pattern found, proceed with filtering and keyword matching
+    log_message "No exclusion pattern found, processing the new lines."
+
+    # Reset the matched_log_entries for the current file
+    matched_log_entries=""
+
+    # Check if keywords are defined
+    if [[ -z "${LOG_FILES_KEYWORDS[$full_path]}" ]]; then
+        # If no specific keywords are set (empty string), treat all new content as relevant
+        matched_log_entries="$new_lines"
+        log_message "No specific keywords for $full_path, treating all new content as relevant."
+    else
+        # Match lines with the specified keywords
+        matched_log_entries=$(echo "$new_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
+        log_message "Attempted Keyword Matching: $matched_log_entries"
+    fi
+
+    # If relevant content is found (either by matching keywords or by treating all new lines as relevant)
+    if [[ -n "$matched_log_entries" ]]; then
+        log_message "Modification detected with relevant content in $full_path"
+        send_email "$full_path" "$matched_log_entries"
+        LAST_NOTIFICATION[$full_path]=$current_time  # Update the last notification time
+    else
+        log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
+    fi
+else
+    log_message "No size increase detected for $full_path"
+fi
+
     FILE_POSITIONS[$full_path]=$new_size
 done & echo $! > "$INOTIFYWAIT_PID_FILE"
 
