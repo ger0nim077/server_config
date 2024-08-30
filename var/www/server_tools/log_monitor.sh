@@ -2,12 +2,12 @@
 
 #!/bin/bash
 
-# Last modified: <timestamp>
+# Last modified: 2024-08-30 19:21:14
 # Do not remove the above line. It's automatically updated by the update_timestamp function.
 
 update_timestamp() {
     current_time=$(date '+%Y-%m-%d %H:%M:%S')
-    sed -i "s/# Last modified: .*$/# Last modified: $current_time/" "$0"
+    sed -i "s/# Last modified: 2024-08-30 19:21:14
 }
 
 # Call update_timestamp function before exit
