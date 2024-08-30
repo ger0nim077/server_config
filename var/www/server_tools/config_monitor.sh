@@ -20,7 +20,7 @@ REPO_DIR="/var/www/BACKUP/server_config/"
 LOG_FILE="/var/log/config_monitor.log"
 
 # Email configuration
-EMAIL="tvasile@gmail.com"
+EMAIL="your-email@example.com"
 
 # List of individual files to monitor
 MONITORED_FILES=(
@@ -78,7 +78,7 @@ send_email() {
 
     while [[ $attempt -lt $max_attempts && $success == false ]]; do
         ((attempt++))
-        echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default "$EMAIL"
+        echo -e "To: $EMAIL\nSubject: $subject\n\n$body" | /usr/bin/msmtp -a default -v "$EMAIL" 2>&1 | tee -a "$LOG_FILE"
         if [ $? -eq 0 ]; then
             log_message "Successfully sent email notification for $file (attempt $attempt)"
             success=true
@@ -110,17 +110,30 @@ handle_change() {
         log_message "Handling file: $path"
         local destination="${REPO_DIR%/}$path"
         mkdir -p "$(dirname "$destination")"
-        cp "$path" "$destination"
-        log_message "File copied: $path to $destination"
-        changes_detected=true
+        
+        if [ ! -f "$destination" ] || ! cmp -s "$path" "$destination"; then
+            cp "$path" "$destination"
+            log_message "File copied: $path to $destination"
+            changes_detected=true
+        else
+            log_message "No changes detected for $path"
+        fi
     elif [ -d "$path" ]; then
         log_message "Syncing directory: $path"
-        rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/" 2>&1 | tee -a "$LOG_FILE"
-        changes_detected=true
+        rsync_output=$(rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
+        
+        if [ "$(echo "$rsync_output" | grep -v 'sending incremental file list')" != "" ]; then
+            changes_detected=true
+            log_message "Directory changes detected in: $path"
+            echo "$rsync_output" | tee -a "$LOG_FILE"
+        else
+            log_message "No changes in directory: $path"
+        fi
     fi
 
     # Send email if changes were detected
     if [ "$changes_detected" = true ]; then
+        log_message "Calling send_email for $path with action $action"
         send_email "$path" "$action"
         return 0
     else
