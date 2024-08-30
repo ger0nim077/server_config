@@ -1,8 +1,22 @@
 #!/bin/bash
 
+# -----------------------------------------------------------------------------
+# Server Configuration Monitoring Script
+# -----------------------------------------------------------------------------
+# This script monitors specific server configuration files and directories for 
+# changes (creation, modification, deletion) and syncs them to a GitHub repository.
+# The script uses inotifywait to detect changes in real-time, and commits any 
+# changes to the repository, ensuring that your server's configuration is always 
+# backed up and version-controlled.
+# -----------------------------------------------------------------------------
+
+# Directory where your Git repository is located
 REPO_DIR="/var/www/BACKUP/server_config/"
+
+# Log file location
 LOG_FILE="/var/log/config_monitor.log"
 
+# List of individual files to monitor
 MONITORED_FILES=(
     "/etc/fail2ban/jail.local"
     "/etc/fail2ban/fail2ban.conf"
@@ -29,41 +43,48 @@ MONITORED_FILES=(
     "/etc/hosts"
 )
 
+# List of directories to monitor
 MONITORED_DIRS=(
     "/var/www/server_tools"
     "/etc/nginx/sites-available"
 )
 
-
-
-
+# -----------------------------------------------------------------------------
 # Function to handle changes in files and directories
+# -----------------------------------------------------------------------------
+# This function handles the detected changes, including:
+# - Deletion of a path
+# - Modification or creation of files
+# - Synchronization of directories
+# It returns 0 if a change was detected and acted upon, otherwise 1.
+# -----------------------------------------------------------------------------
 handle_change() {
     local path="$1"
     local changes_detected=false
 
-    # If the path no longer exists, it was deleted
+    # Handle deletion
     if [ ! -e "$path" ]; then
         echo "Path deleted: $path" | tee -a "$LOG_FILE"
         git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
         changes_detected=true
 
-    # If the path is a file, handle it
+    # Handle file creation/modification
     elif [ -f "$path" ]; then
-        echo "Checking file: $path" | tee -a "$LOG_FILE"
+        echo "Handling file: $path" | tee -a "$LOG_FILE"
         local destination="$REPO_DIR$path"
         mkdir -p "$(dirname "$destination")"
         cp "$path" "$destination"
         echo "File copied: $path to $destination" | tee -a "$LOG_FILE"
         changes_detected=true
 
-    # If the path is a directory, sync it
+    # Handle directory synchronization
     elif [ -d "$path" ]; then
         echo "Syncing directory: $path" | tee -a "$LOG_FILE"
         rsync -av --delete --exclude='.git' "$path/" "$REPO_DIR$path/" 2>&1 | tee -a "$LOG_FILE"
         changes_detected=true
     fi
 
+    # Return 0 if changes were detected, 1 otherwise
     if [ "$changes_detected" = true ]; then
         return 0
     else
@@ -71,6 +92,12 @@ handle_change() {
     fi
 }
 
+# -----------------------------------------------------------------------------
+# Function to update the Git repository
+# -----------------------------------------------------------------------------
+# This function stages all changes, commits them, and pushes them to GitHub.
+# It also logs the status and any errors encountered during these operations.
+# -----------------------------------------------------------------------------
 update_repo() {
     cd "$REPO_DIR" || { echo "Failed to change directory to $REPO_DIR" | tee -a "$LOG_FILE"; exit 1; }
 
@@ -97,7 +124,12 @@ update_repo() {
     fi
 }
 
-# Initial sync and update repo before monitoring changes
+# -----------------------------------------------------------------------------
+# Initial Sync: Sync files and directories before starting monitoring
+# -----------------------------------------------------------------------------
+# This block ensures that all files and directories are in sync with the 
+# repository before the monitoring begins.
+# -----------------------------------------------------------------------------
 for file in "${MONITORED_FILES[@]}"; do
     handle_change "$file"
 done
@@ -108,7 +140,13 @@ done
 
 update_repo
 
-# Monitor for changes
+# -----------------------------------------------------------------------------
+# Monitor for changes using inotifywait
+# -----------------------------------------------------------------------------
+# This block uses inotifywait to monitor the specified files and directories 
+# for any changes (creation, modification, deletion) and triggers the handling
+# of these changes followed by a commit to the repository.
+# -----------------------------------------------------------------------------
 MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
 
 inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
