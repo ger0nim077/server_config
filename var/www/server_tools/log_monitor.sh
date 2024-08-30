@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Last modified: 2024-08-30 19:17:31
+# Do not remove the above line. It's automatically updated by the update_timestamp function.
+
+update_timestamp() {
+    sed -i "s/# Last modified: 2024-08-30 19:17:31
+}
+
+# Call update_timestamp function before exit
+trap update_timestamp EXIT
+
 # Log Monitoring Script
 # ---------------------
 # This script monitors specified log files for changes, detects relevant log entries,
@@ -210,5 +220,7 @@ while read -r full_path; do
     FILE_POSITIONS[$full_path]=$new_size
 done & echo $! > "$INOTIFYWAIT_PID_FILE"
 
+# At the end of your script, add:
+update_timestamp
 
 wait
