@@ -98,7 +98,6 @@ send_email() {
 # -----------------------------------------------------------------------------
 # Function to handle changes in files and directories
 # -----------------------------------------------------------------------------
-
 handle_change() {
     local path="$1"
     local action="$2"
@@ -109,34 +108,40 @@ handle_change() {
         log_message "Path deleted: $path"
         git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
         changes_detected=true
+        action="Deleted"
     elif [ -f "$path" ]; then
         log_message "Handling file: $path"
         local destination="${REPO_DIR%/}$path"
         mkdir -p "$(dirname "$destination")"
 
-        # Check if the file has actual content changes
         if [ ! -f "$destination" ] || ! cmp -s "$path" "$destination"; then
             cp "$path" "$destination"
             log_message "File copied: $path to $destination"
             changes_detected=true
+            action="Modified"
         else
             log_message "No changes detected for $path"
         fi
     elif [ -d "$path" ]; then
         log_message "Syncing directory: $path"
-        
-        # Use rsync with --checksum to compare file content rather than timestamps
         rsync_output=$(rsync -ac --delete --exclude='.git' "$path/" "$REPO_DIR$path/")
-        
-        # Check if rsync reported any meaningful changes
+
         if [ "$(echo "$rsync_output" | grep -v -e '^sending incremental file list' -e '^$' -e '^./$')" != "" ]; then
             changes_detected=true
             log_message "Directory changes detected in: $path"
             echo "$rsync_output" | tee -a "$LOG_FILE"
+            action="Directory Synced"
         else
             log_message "No changes in directory: $path"
         fi
     fi
+
+    if [ "$changes_detected" = true ]; then
+        return 0  # Changes detected
+    else
+        return 1  # No changes detected
+    fi
+}
 
 
 # -----------------------------------------------------------------------------
