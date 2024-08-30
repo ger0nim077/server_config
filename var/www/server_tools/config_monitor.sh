@@ -34,9 +34,8 @@ MONITORED_DIRS=(
     "/etc/nginx/sites-available"
 )
 
-
-# Function to check a specific file or directory for changes or deletions
-check_path() {
+# Function to handle changes in files and directories
+handle_change() {
     local path="$1"
     local changes_detected=false
 
@@ -69,8 +68,10 @@ check_path() {
         fi
     else
         echo "Path deleted: $path" | tee -a "$LOG_FILE"
-        git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
-        changes_detected=true
+        if [ -e "$REPO_DIR$path" ]; then
+            git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
+            changes_detected=true
+        fi
     fi
 
     if [ "$changes_detected" = true ]; then
@@ -108,6 +109,17 @@ update_repo() {
     fi
 }
 
+# Initial copy of any new files and push to repo
+for file in "${MONITORED_FILES[@]}"; do
+    handle_change "$file"
+done
+
+for dir in "${MONITORED_DIRS[@]}"; do
+    handle_change "$dir"
+done
+
+update_repo
+
 # Now proceed to monitor for changes
 MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
 
@@ -117,7 +129,7 @@ while read -r path action file; do
     echo "Change detected in $full_path ($action)" | tee -a "$LOG_FILE"
     sleep 5  # Adjust as needed to batch changes
 
-    check_path "$full_path"
+    handle_change "$full_path"
     change_detected=$?
     if [ $change_detected -eq 0 ]; then
         echo "Calling update_repo after change detected" | tee -a "$LOG_FILE"
