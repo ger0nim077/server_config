@@ -35,12 +35,19 @@ MONITORED_DIRS=(
 )
 
 
+
 # Function to handle changes in files and directories
 handle_change() {
     local path="$1"
     local changes_detected=false
 
-    if [ -f "$path" ]; then
+    if [ ! -e "$path" ]; then
+        echo "Path deleted: $path" | tee -a "$LOG_FILE"
+        if [ -e "$REPO_DIR$path" ]; then
+            git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
+            changes_detected=true
+        fi
+    elif [ -f "$path" ]; then
         echo "Checking file: $path" | tee -a "$LOG_FILE"
         local destination="$REPO_DIR$path"
         echo "Destination for $path is $destination" | tee -a "$LOG_FILE"
@@ -66,12 +73,6 @@ handle_change() {
             echo "$rsync_output" | tee -a "$LOG_FILE"
         else
             echo "No changes in directory: $path" | tee -a "$LOG_FILE"
-        fi
-    else
-        echo "Path deleted: $path" | tee -a "$LOG_FILE"
-        if [ -e "$REPO_DIR$path" ]; then
-            git rm -rf "$REPO_DIR$path" 2>&1 | tee -a "$LOG_FILE"
-            changes_detected=true
         fi
     fi
 
