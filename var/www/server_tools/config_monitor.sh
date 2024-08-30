@@ -34,6 +34,7 @@ MONITORED_DIRS=(
     "/etc/nginx/sites-available"
 )
 
+
 # Function to handle changes in files and directories
 handle_change() {
     local path="$1"
@@ -84,10 +85,8 @@ handle_change() {
 update_repo() {
     cd "$REPO_DIR" || { echo "Failed to change directory to $REPO_DIR" | tee -a "$LOG_FILE"; exit 1; }
 
-    git status 2>&1 | tee -a "$LOG_FILE"
     echo "Staging all changes..." | tee -a "$LOG_FILE"
     git add -A 2>&1 | tee -a "$LOG_FILE"
-    
     git status 2>&1 | tee -a "$LOG_FILE"
 
     if ! git diff-index --quiet HEAD --; then
@@ -109,7 +108,7 @@ update_repo() {
     fi
 }
 
-# Initial copy of any new files and push to repo
+# Initial sync and update repo before monitoring changes
 for file in "${MONITORED_FILES[@]}"; do
     handle_change "$file"
 done
@@ -120,7 +119,7 @@ done
 
 update_repo
 
-# Now proceed to monitor for changes
+# Monitor for changes
 MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
 
 inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
