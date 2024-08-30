@@ -24,6 +24,7 @@ LOG_FILES=(
     "/var/log/msmtp.log"
 
     "/var/log/log_monitor.log"
+    "/var/log/config_monitor.log"
 
     "/var/www/html/combined_logs.txt"
     "/var/www/BACKUP/errors.log"
