@@ -155,7 +155,7 @@ while read -r full_path; do
         continue  # Skip to the next iteration
     fi
 
-   # Regular file growth handling
+# Regular file growth handling
 if [[ $new_size -gt $old_size ]]; then
     added_bytes=$((new_size - old_size))
     log_message "Old Size: $old_size, New Size: $new_size, Added Bytes: $added_bytes for $full_path"
@@ -202,6 +202,9 @@ elif [[ $new_size -eq 0 ]]; then
     # Handle log rotation (only for the specific file)
     log_message "Log file size is zero, treating as log rotation for $full_path"
     FILE_POSITIONS[$full_path]=0  # Reset the file position only for the affected file
+
+    # Update the file size for the specific file
+    FILE_POSITIONS[$full_path]=$(stat -c%s "$full_path")
 else
     log_message "No size increase detected for $full_path"
 fi
@@ -209,7 +212,6 @@ fi
 # Update the file position for the current file
 FILE_POSITIONS[$full_path]=$new_size
 done & echo $! > "$INOTIFYWAIT_PID_FILE"
-
 
 
 wait
