@@ -1,0 +1,90 @@
+Log Monitoring Script Description
+
+Overview
+
+This Bash script is designed to monitor specific log files for changes, detect relevant log entries, and send email notifications based on predefined keywords. It also supports filtering out irrelevant log entries using exclusion patterns. The script can handle log rotation events and automatically reinitialize monitoring to ensure continuous operation. The script is intended to run as a service on a Linux server.
+
+Key Features
+
+Log File Monitoring:
+
+The script monitors multiple log files for modifications using inotifywait.
+When a log file is modified, it captures the newly added lines and processes them.
+
+Keyword Matching:
+
+The script checks the new log entries for specific keywords.
+If a keyword is found, the script sends an email notification with the relevant log entry.
+Exclusion Patterns:
+
+The script can exclude log entries that match specific patterns.
+If any part of a multi-line log entry matches an exclusion pattern, the entire message is discarded, preventing further processing.
+
+Handling Log Rotation:
+
+The script detects when a log file has been rotated (e.g., truncated to zero size).
+Upon detecting a log rotation, it reinitializes the file position to continue monitoring the new log file.
+
+Debouncing and Notification Interval:
+
+The script uses a debounce interval to prevent processing the same log entry multiple times in quick succession.
+It also has a notification interval to avoid sending duplicate notifications within a short time frame.
+
+Script Components
+
+Configuration:
+
+LOG_FILES_KEYWORDS: An associative array mapping log file paths to keywords. The script will monitor these files and check for the specified keywords.
+EXCLUSION_PATTERNS: An associative array mapping log file paths to exclusion patterns. If an exclusion pattern is found in the log entry, the entire entry is discarded.
+NOTIFICATION_INTERVAL: The minimum time (in seconds) between sending notifications for the same log file.
+DEBOUNCE_INTERVAL: The time (in seconds) to wait before processing a detected change, allowing for multiple lines to be written before processing.
+
+Functions:
+
+log_message: Writes messages to a log file for debugging and tracking script activity.
+send_email: Sends email notifications when relevant log entries are found. It includes retry logic to handle temporary email sending failures.
+cleanup: Handles cleanup operations when the script is stopped, such as killing the inotifywait process.
+initialize_positions: Initializes or updates the file size positions for each monitored log file. This ensures that only new log entries are processed.
+
+Main Loop:
+
+The script uses inotifywait to monitor the specified log files for changes.
+When a change is detected, it calculates the number of new bytes added to the log file and extracts the new log entries.
+Exclusion Check: Before processing the log entries, the script checks if any part of the new entries contains an exclusion pattern. If found, the entire message is discarded.
+Keyword Matching: If no exclusion pattern is found, the script checks the new entries for the specified keywords. If a keyword is found, it triggers an email notification.
+Handling Log Rotation: If the log file size drops to zero, the script treats this as a log rotation event and reinitializes monitoring.
+
+Log Rotation Handling:
+
+If a log file is truncated to zero (indicating rotation), the script reinitializes the file position and continues monitoring the new log file.
+
+Usage
+
+Installation:
+
+Place the script on your server and ensure it has execute permissions.
+Set up the script as a service to run continuously in the background.
+Configure LOG_FILES_KEYWORDS and EXCLUSION_PATTERNS according to your needs.
+
+Running the Script:
+
+Start the script as a service or run it manually for testing.
+Monitor the script's log file (specified by LOG_FILE) for debugging and confirmation that it's working correctly.
+
+Adjustments:
+
+Modify the LOG_FILES_KEYWORDS and EXCLUSION_PATTERNS arrays to match new log files or keywords as needed.
+Adjust the NOTIFICATION_INTERVAL and DEBOUNCE_INTERVAL settings to fine-tune how often notifications are sent.
+
+Example Use Case
+This script is ideal for scenarios where you need to monitor various log files across different applications for critical errors, warnings, or specific events. For example, you could use this script to:
+
+Monitor an Apache or Nginx error log for ERROR or ALERT keywords.
+Exclude specific known errors that you don’t want to be notified about (e.g., transient errors that don’t require action).
+Automatically handle log rotation events to ensure uninterrupted monitoring.
+
+Maintenance and Troubleshooting
+
+Checking Logs: Regularly check the log file (/var/log/log_monitor.log) for any issues or unexpected behavior.
+Testing: After making changes to the script or log configurations, manually test to ensure it works as expected.
+Updating: If you modify the log files or patterns being monitored, update the script accordingly and restart it to apply the changes.

@@ -1,0 +1,42 @@
+[mysql-auth]
+enabled  = true
+port     = 21221
+filter   = mysqld-auth
+logpath  = /var/log/mysql/error.log
+maxretry = 0
+ignoreip = 127.0.0.1/8
+bantime  = -1  # Permanent ban
+findtime = 3600  # 1 hour
+#journalmatch = "_SYSTEMD_UNIT=mysql.service + _COMM=mysql"
+backend = auto
+action   = iptables[name=MySQL, port=21221, protocol=tcp]
+actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
+
+[sshd]
+enabled = true
+port    = 22022
+filter  = sshd
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
+#bantime.increment = true
+#bantime.rndtime = 0
+bantime.list = 600,1800,-1  # Ban times: 10 minutes, 30 minutes, permanent
+findtime = 9000
+maxretry = 3
+#journalmatch = "_SYSTEMD_UNIT=sshd.service + _COMM=sshd"
+action   = iptables-multiport[name=SSH, port="22022", protocol=tcp]
+actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
+
+[nginx-forbidden]
+enabled = true
+port    = http,https
+filter  = nginx-forbidden
+logpath = /var/log/nginx/error.log
+maxretry = 1
+findtime = 3600  # 60 minutes
+bantime  = -1  # Permanent ban
+backend = polling
+#journalmatch = "_SYSTEMD_UNIT=nginx.service + _COMM=nginx"
+action = iptables-allports[name=nginx-forbidden]
+#action = iptables-multiport[name=nginx-forbidden, port="http,https", protocol=tcp]
+actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]

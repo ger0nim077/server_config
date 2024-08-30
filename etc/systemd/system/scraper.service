@@ -1,0 +1,13 @@
+[Unit]
+Description=Booksoft Scraper Service
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /var/www/html/booksoft.ro/scraper/_master.sh
+
+RemainAfterExit=yes
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=ChromeDriver Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/chromedriver --port=4444 --log-path=/var/log/chromedriver.log --log-level=WARNING --headless
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=10
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target
+

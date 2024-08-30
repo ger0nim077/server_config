@@ -1,0 +1,127 @@
+#!/bin/bash
+
+LOG_FILE="/var/log/log_monitor.log"
+INOTIFYWAIT_PID_FILE="/var/run/inotifywait.pid"
+declare -A LAST_NOTIFICATION
+NOTIFICATION_INTERVAL=120  # 2 minutes in seconds
+
+# Function to log messages
+log_message() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+}
+
+# Log files to monitor
+LOG_FILES=(
+    "/var/www/html/booksoft.ro/auctiondb/logs/mysqli_errors.log"
+    "/var/www/html/booksoft.ro/diverse/astro/logs/mysqli_errors.log"
+    "/var/www/html/booksoft.ro/scraper/logs/mysqli_errors.log"
+    "/var/www/html/booksoft.ro/scraper/logs/scraperH_errors.log"
+    "/var/www/html/booksoft.ro/scraper/logs/scraperOK_errors.log"
+    "/var/www/html/primapagina.ro/logs/mysqli_errors.log"
+    "/var/www/html/booksoft.ro/scraper/logs/curl_errors.log"
+    "/var/www/BACKUP/errors.log"
+    "/var/log/fail2ban.log"
+    "/var/log/letsencrypt/letsencrypt.log"
+    "/var/log/mysql/error.log"
+    "/var/log/nginx/error.log"
+    "/var/log/php8.3-fpm.log"
+)
+
+# Email address to send notifications
+EMAIL="tvasile@gmail.com"
+
+# Function to send email with the last log entries and detailed logging
+send_email() {
+    local file="$1"
+    local subject="Log File Modified: $file"
+    local log_entries=$(tail -n 10 "$file" 2>/dev/null)  # Get the last 10 lines from the log file
+    local body="The log file $file has been modified. Here are the last 10 entries:\n\n$log_entries"
+    local max_attempts=3
+    local attempt=1
+    local success=false
+    local email_tmp_file="/tmp/email_tmp_file.txt"
+
+    log_message "Preparing to send email notification for $file"
+
+    # Create the email content in a temporary file
+    {
+        echo "To: $EMAIL"
+        echo "Subject: $subject"
+        echo
+        echo -e "$body"
+    } > "$email_tmp_file"
+
+    while [ $attempt -le $max_attempts ] && [ "$success" = false ]; do
+        if /usr/bin/msmtp -a default "$EMAIL" < "$email_tmp_file" 2>> "$LOG_FILE"; then
+            success=true
+            log_message "Successfully sent email notification for $file (attempt $attempt)"
+        else
+            log_message "Failed to send email notification for $file (attempt $attempt)"
+            sleep 5  # Wait for 5 seconds before retrying
+        fi
+        attempt=$((attempt + 1))
+    done
+
+    if [ "$success" = false ]; then
+        log_message "Failed to send email notification for $file after $max_attempts attempts"
+    fi
+
+    # Clean up the temporary email file
+    rm -f "$email_tmp_file"
+}
+
+# Function to handle exit
+cleanup() {
+    log_message "Stopping log monitoring"
+    kill $(jobs -p)
+    rm -f "$INOTIFYWAIT_PID_FILE"
+    exit 0
+}
+
+# Set up signal handling
+trap cleanup SIGTERM SIGINT
+
+# Function to log the number of inotify watches
+log_inotify_counts() {
+    local total_watches=$(cat /proc/sys/fs/inotify/max_user_watches)
+    local watches_in_use=$(lsof | grep -c inotify)
+    local pid_watches=$(lsof -p $(cat "$INOTIFYWAIT_PID_FILE") | grep -c inotify)
+    log_message "Total inotify watches available: $total_watches"
+    log_message "Total inotify watches in use: $watches_in_use"
+    log_message "Inotify watches used by this script: $pid_watches"
+}
+
+# Main script
+log_message "Starting log monitoring"
+log_message "Setting up watches."
+
+# Use inotifywait to monitor the files with error checking
+inotifywait -m "${LOG_FILES[@]}" -e modify 2>> "$LOG_FILE" & echo $! > "$INOTIFYWAIT_PID_FILE"
+
+if [[ $? -ne 0 ]]; then
+    log_message "Error: Failed to set inotify watch"
+fi
+
+# Log that watches are established
+log_message "Watches established."
+
+# Process detected modifications
+while read -r directory events filename; do
+    full_path="$directory$filename"
+    current_time=$(date +%s)
+    last_time=${LAST_NOTIFICATION[$full_path]:-0}
+    time_diff=$((current_time - last_time))
+
+    if [[ $time_diff -ge $NOTIFICATION_INTERVAL ]]; then
+        log_message "Detected modification in $full_path"
+        send_email "$full_path"
+        LAST_NOTIFICATION[$full_path]=$current_time
+    else
+        log_message "Skipping email notification for $full_path, last sent $time_diff seconds ago."
+    fi
+    
+    log_inotify_counts  # Log the inotify watch counts after each detected modification
+done < <(inotifywait -m "${LOG_FILES[@]}" -e modify) 2>> "$LOG_FILE" &
+
+# Wait for signals
+wait

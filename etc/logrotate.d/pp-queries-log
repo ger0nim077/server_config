@@ -1,0 +1,9 @@
+/var/www/html/primapagina.ro/logs/mysqli_queries.log {
+    weekly
+    rotate 4
+    size 3M
+    compress
+    missingok
+    notifempty
+    create 644 root root
+}

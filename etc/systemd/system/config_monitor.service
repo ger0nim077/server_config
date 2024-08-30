@@ -1,0 +1,10 @@
+[Unit]
+Description=Monitor and update server config backup
+After=network.target
+
+[Service]
+ExecStart="/var/www/server_tools/config_monitor.sh"
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

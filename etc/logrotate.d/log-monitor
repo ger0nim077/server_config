@@ -1,0 +1,9 @@
+/var/log/log_monitor.log {
+    weekly
+    rotate 4
+    size 3M
+    compress
+    missingok
+    notifempty
+    create 644 root root
+}
