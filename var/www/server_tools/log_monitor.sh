@@ -34,6 +34,8 @@
 # This script is ideal for monitoring log files across various applications and
 # ensuring that only relevant log entries trigger notifications.
 
+
+
 LOG_FILE="/var/log/log_monitor.log"
 INOTIFYWAIT_PID_FILE="/var/run/inotifywait.pid"
 declare -A LAST_NOTIFICATION
@@ -63,6 +65,7 @@ declare -A LOG_FILES_KEYWORDS=(
     ["/var/log/php8.3-fpm.log"]="WARNING|ERROR"
     ["/var/log/chromedriver.log"]=""
     ["/var/log/config_monitor.log"]=""
+
 )
 
 # Specific exclusion patterns for individual log files
@@ -170,6 +173,9 @@ while read -r full_path; do
             fi
         fi
 
+        # If no exclusion pattern found, proceed with filtering and keyword matching
+        log_message "No exclusion pattern found, processing the new lines."
+
         # Reset the matched_log_entries for the current file
         matched_log_entries=""
 
@@ -192,8 +198,26 @@ while read -r full_path; do
         else
             log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
         fi
+
+
+
+        if [[ -n "${LOG_FILES_KEYWORDS[$full_path]}" ]]; then
+            matched_log_entries=$(echo "$new_lines" | grep -Ei "${LOG_FILES_KEYWORDS[$full_path]}")
+            log_message "Attempted Keyword Matching: $matched_log_entries"
+        fi
+
+        if [[ -n "$matched_log_entries" ]]; then
+            log_message "Modification detected with relevant content in $full_path"
+            send_email "$full_path" "$matched_log_entries"
+            LAST_NOTIFICATION[$full_path]=$current_time  # Update the last notification time
+        else
+            log_message "No relevant content found in $full_path after applying exclusion patterns or keyword check"
+        fi
     else
         log_message "No size increase detected for $full_path"
     fi
     FILE_POSITIONS[$full_path]=$new_size
-done & echo $! > "$INOT
+done & echo $! > "$INOTIFYWAIT_PID_FILE"
+
+
+wait
