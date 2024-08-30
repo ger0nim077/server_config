@@ -176,10 +176,10 @@ update_repo() {
     fi
 }
 
-
 # -----------------------------------------------------------------------------
 # Initial Sync: Sync files and directories before starting monitoring
 # -----------------------------------------------------------------------------
+
 for file in "${MONITORED_FILES[@]}"; do
     handle_change "$file" "Initial Sync"
 done
