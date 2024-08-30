@@ -45,7 +45,7 @@ MONITORED_FILES=(
     "/etc/systemd/system/scraper.service"
     "/etc/systemd/system/logmonitor.service"
     "/etc/systemd/system/chromedriver.service"
-    "/etc/systemd/system/config_monitor.service"
+    "/etc/systemd/system/configmonitor.service"
     "/etc/hosts"
 )
 
