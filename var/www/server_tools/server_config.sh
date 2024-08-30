@@ -5,8 +5,28 @@ LOG_FILE="/var/log/config_monitor.log"
 
 MONITORED_FILES=(
     "/etc/fail2ban/jail.local"
+    "/etc/fail2ban/fail2ban.conf"
+    "/etc/fail2ban/jail.conf"
+    "/etc/fail2ban/filter.d/nginx-forbidden.conf"
+    "/etc/fail2ban/filter.d/mssql-auth.conf"
+    "/etc/logrotate.d/fail2ban"
+    "/etc/logrotate.d/log-monitor"
+    "/etc/logrotate.d/pp-queries-log"
+    "/etc/logrotate.d/scraper-curl-errors"
+    "/etc/mysql/mysql.conf.d/mysqld.cnf"
+    "/etc/mysql/mariadb.conf.d/50-server.cnf"
     "/etc/nginx/nginx.conf"
-    "/var/www/server_tools/test4"  # Example of a newly added file
+    "/etc/php/8.3/fpm/php.ini"
+    "/etc/php/8.3/fpm/php-fpm.conf"
+    "/etc/php/8.3/fpm/pool.d/www.conf"
+    "/etc/php/8.3/fpm/pool.d/php-fpm.d/www.conf"
+    "/etc/php/8.3/cli/php.ini"
+    "/etc/msmtprc"
+    "/etc/systemd/system/scraper.service"
+    "/etc/systemd/system/logmonitor.service"
+    "/etc/systemd/system/chromedriver.service"
+    "/etc/systemd/system/config_monitor.service"
+    "/etc/hosts"
 )
 
 MONITORED_DIRS=(
