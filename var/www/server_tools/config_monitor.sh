@@ -204,6 +204,7 @@ fi
 # -----------------------------------------------------------------------------
 # Monitor for changes using inotifywait
 # -----------------------------------------------------------------------------
+
 MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
 
 inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
