@@ -1,7 +1,6 @@
 #!/bin/bash
 
-#!/bin/bash
-
+# Last saved: 2024-08-30 19:28:00
 
 # Log Monitoring Script
 # ---------------------
