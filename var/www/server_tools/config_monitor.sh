@@ -184,6 +184,7 @@ update_repo() {
         log_message "No changes detected, nothing to commit."
     fi
 }
+
 # -----------------------------------------------------------------------------
 # Initial Sync: Sync files and directories before starting monitoring
 # -----------------------------------------------------------------------------
