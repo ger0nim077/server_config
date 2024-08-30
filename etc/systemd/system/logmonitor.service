@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash /var/www/server_tools/log_monitor.sh
+ExecStart=/bin/bash /var/www/html/log_monitor.sh
 Environment="PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
 ExecStop=/bin/kill -SIGTERM $MAINPID
 Restart=on-failure
