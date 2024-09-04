@@ -45,7 +45,7 @@ max_allowed_packet     = 128M # was 1G - Handle larger queries or data transmiss
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
 #myisam_recover_options = BACKUP
-max_connections        = 200
+max_connections        = 100
 #table_cache            = 64
 
 #
@@ -111,7 +111,7 @@ collation-server      = utf8mb4_general_ci
 # Read the manual for more InnoDB related options. There are many!
 # Most important is to give InnoDB 80 % of the system RAM for buffer use:
 # https://mariadb.com/kb/en/innodb-system-variables/#innodb_buffer_pool_size
-#innodb_buffer_pool_size = 8G
+innodb_buffer_pool_size = 3G
 
 # this is only for embedded server
 [embedded]
