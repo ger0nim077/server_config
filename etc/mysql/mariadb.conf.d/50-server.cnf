@@ -19,6 +19,12 @@ basedir                 = /usr
 #tmpdir                  = /tmp
 port            	= 21221
 
+# Timeouts to prevent connection issues
+wait_timeout = 28800          # Maximum idle time before the server closes the connection (in seconds)
+interactive_timeout = 28800   # Maximum time for interactive sessions (e.g., from PHP)
+net_read_timeout = 60         # Maximum time to wait for a network packet from the client (in seconds)
+net_write_timeout = 60        # Maximum time to wait for data to be sent to the client (in seconds)
+
 
 # Broken reverse DNS slows down connections considerably and name resolve is
 # safe to skip if there are no "host by domain name" access grants
@@ -33,13 +39,13 @@ bind-address            = 127.0.0.1
 #
 
 #key_buffer_size        = 128M
-#max_allowed_packet     = 1G
+max_allowed_packet     = 128M # was 1G - Handle larger queries or data transmissions
 #thread_stack           = 192K
 #thread_cache_size      = 8
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
 #myisam_recover_options = BACKUP
-#max_connections        = 100
+max_connections        = 200
 #table_cache            = 64
 
 #
