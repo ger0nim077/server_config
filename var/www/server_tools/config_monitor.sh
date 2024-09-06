@@ -48,6 +48,7 @@ MONITORED_FILES=(
     "/etc/systemd/system/chromedriver.service"
     "/etc/systemd/system/configmonitor.service"
     "/etc/hosts"
+    "/var/spool/cron/crontabs/root"
 )
 
 # List of directories to monitor
