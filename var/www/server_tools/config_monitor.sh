@@ -212,7 +212,7 @@ fi
 # -----------------------------------------------------------------------------
 
 MONITOR_PATHS=("${MONITORED_FILES[@]}" "${MONITORED_DIRS[@]}")
-
+#inotifywait -m -r -e modify,create,delete "${MONITOR_PATHS[@]}" |
 inotifywait -m -r -e modify,create,delete,move,close_write "${MONITOR_PATHS[@]}" |
 while read -r path action file; do
     full_path="$path$file"
