@@ -24,20 +24,20 @@ backend = %(sshd_backend)s
 # Enable incremental banning
 bantime.increment = true
 
-# Use a multiplier of 2 for each subsequent ban
-bantime.factor = 2
+# Use a multiplier of 4 for each subsequent ban
+bantime.factor = 4
 
-# Calculate ban time using this formula, with permanent ban after 4th offense
-bantime.formula = ban.Time * (1<<(ban.Count if ban.Count<4 else 4)) if ban.Count < 4 else -1
+# Calculate ban time using this formula, with permanent ban on 4th offense
+bantime.formula = ban.Time * (bantime.factor^(ban.Count if ban.Count<3 else 2)) if ban.Count < 3 else -1
 
-# Initial ban time of 10 minutes (600 seconds)
-bantime  = 600
+# Initial ban time of 1 hour
+bantime  = 1h
 
 # Maximum ban time (not applicable due to permanent ban, but required for syntax)
 bantime.maxtime = 4w
 
-# Look back period for failed attempts
-findtime = 2h
+# Look back period for failed attempts (36 hours, which is greater than total possible ban time)
+findtime = 30h
 
 # Number of failures before a ban
 maxretry = 3
