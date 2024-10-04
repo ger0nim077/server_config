@@ -27,20 +27,17 @@ bantime.increment = true
 # Use a multiplier of 4 for each subsequent ban
 bantime.factor = 4
 
-# Calculate ban time using this formula, with permanent ban on 4th offense
-bantime.formula = ban.Time * (bantime.factor^(ban.Count if ban.Count<3 else 2)) if ban.Count < 3 else -1
+# Ban time formula with permanent ban on 3rd offense
+bantime.formula = ban.Time * (bantime.factor**(ban.Count-1)) if ban.Count < 3 else -1
 
-# Initial ban time of 1 hour
-bantime  = 1h
+# Initial ban time of 2 hours
+bantime = 2h
 
-# Maximum ban time (not applicable due to permanent ban, but required for syntax)
-bantime.maxtime = 4w
-
-# Look back period for failed attempts (36 hours, which is greater than total possible ban time)
+# Look back period for failed attempts (30 hours)
 findtime = 30h
 
 # Number of failures before a ban
-maxretry = 3
+maxretry = 2
 
 # Actions to take when banning
 action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
@@ -48,6 +45,7 @@ action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
 
 # Uncomment the following line if you're using systemd journal
 #journalmatch = "_SYSTEMD_UNIT=sshd.service + _COMM=sshd"
+
 
 [nginx-forbidden]
 enabled = true
