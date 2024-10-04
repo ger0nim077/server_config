@@ -20,14 +20,34 @@ port    = 22022
 filter  = sshd
 logpath = %(sshd_log)s
 backend = %(sshd_backend)s
-#bantime.increment = true
-#bantime.rndtime = 0
-bantime.list = 600,600,600, -1  # Ban times: 10 minutes, 10 minutes, 10 minutes, permanent
-findtime = 9000
+
+# Enable incremental banning
+bantime.increment = true
+
+# Use a multiplier of 2 for each subsequent ban
+bantime.factor = 2
+
+# Calculate ban time using this formula, with permanent ban after 4th offense
+bantime.formula = ban.Time * (1<<(ban.Count if ban.Count<4 else 4)) if ban.Count < 4 else -1
+
+# Initial ban time of 10 minutes (600 seconds)
+bantime  = 600
+
+# Maximum ban time (not applicable due to permanent ban, but required for syntax)
+bantime.maxtime = 4w
+
+# Look back period for failed attempts
+findtime = 2h
+
+# Number of failures before a ban
 maxretry = 3
+
+# Actions to take when banning
+action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
+         custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
+
+# Uncomment the following line if you're using systemd journal
 #journalmatch = "_SYSTEMD_UNIT=sshd.service + _COMM=sshd"
-action   = iptables-multiport[name=SSH, port="22022", protocol=tcp]
-actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
 
 [nginx-forbidden]
 enabled = true
