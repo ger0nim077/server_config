@@ -29,19 +29,14 @@ bantime = 2h
 findtime = 30h
 maxretry = 2
 
-# Actions
-action = %(known/action)s
-         iptables-multiport[name=SSH, port="22022", protocol=tcp]
+# Actions for normal bans
+action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
          custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Ban Applied for SSH"]
 
-# Custom action for permanent bans
-action_perm = %(known/action)s
-              iptables-multiport[name=SSH, port="22022", protocol=tcp, bantime="-1"]
-              custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Permanent Ban Applied for SSH"]
+# Actions for permanent bans
+action_ = iptables-multiport[name=SSH, port="22022", protocol=tcp, bantime=-1]
+          custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Permanent Ban Applied for SSH"]
 
-# Use permanent ban action when ban count reaches 3
-action = %(action_)s
-         %(action_perm)s[bancount=3]
 
 
 [nginx-forbidden]
