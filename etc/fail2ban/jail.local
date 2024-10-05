@@ -21,30 +21,27 @@ filter  = sshd
 logpath = %(sshd_log)s
 backend = %(sshd_backend)s
 
-# Enable incremental banning
+# Ban time formula
 bantime.increment = true
-
-# Use a multiplier of 4 for each subsequent ban
 bantime.factor = 4
-
-# Ban time formula with permanent ban on 3rd offense
 bantime.formula = ban.Time * (bantime.factor**(ban.Count-1)) if ban.Count < 3 else -1
-
-# Initial ban time of 2 hours
 bantime = 2h
-
-# Look back period for failed attempts (30 hours)
 findtime = 30h
-
-# Number of failures before a ban
 maxretry = 2
 
-# Actions to take when banning
-action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
-         custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
+# Actions
+action = %(known/action)s
+         iptables-multiport[name=SSH, port="22022", protocol=tcp]
+         custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Ban Applied for SSH"]
 
-# Uncomment the following line if you're using systemd journal
-#journalmatch = "_SYSTEMD_UNIT=sshd.service + _COMM=sshd"
+# Custom action for permanent bans
+action_perm = %(known/action)s
+              iptables-multiport[name=SSH, port="22022", protocol=tcp, bantime="-1"]
+              custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Permanent Ban Applied for SSH"]
+
+# Use permanent ban action when ban count reaches 3
+action = %(action_)s
+         %(action_perm)s[bancount=3]
 
 
 [nginx-forbidden]
