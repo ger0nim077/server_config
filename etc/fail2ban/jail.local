@@ -25,19 +25,20 @@ backend = %(sshd_backend)s
 bantime = 2h
 bantime.increment = true
 bantime.factor = 4
-bantime.formula = ban.Time * (bantime.factor ** (ban.Count - 1)) if ban.Count < 3 else -1
+bantime.formula = 2h * (4 ** (ban.Count - 1)) if ban.Count < 3 else -1
 
 # Look-back period and max retries
 findtime = 30h
 maxretry = 2
 
-# Actions for normal and permanent bans
+# Actions for normal bans
 action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
          custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Ban Applied for SSH"]
 
 # Custom action for permanent bans
 action_ = iptables-multiport[name=SSH, port="22022", protocol=tcp, bantime=-1]
           custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Permanent Ban Applied for SSH"]
+
 
 [nginx-forbidden]
 enabled = true
