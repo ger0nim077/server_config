@@ -1,5 +1,8 @@
 # Last saved: 2024-09-09 12:57:00
 
+[Definition]
+allowipv6 = auto
+
 [mysql-auth]
 enabled  = true
 port     = 21221
