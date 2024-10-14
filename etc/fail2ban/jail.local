@@ -22,10 +22,11 @@ logpath = %(sshd_log)s
 backend = %(sshd_backend)s
 
 # Ban time and incremental settings for this jail only
-bantime = 2h
+# 2 hours in seconds
+bantime = 7200
 bantime.increment = true
 bantime.factor = 4
-bantime.formula = 2h * (4 ** (ban.Count - 1)) if ban.Count < 3 else -1
+bantime.formula = 7200 * (4 ** (ban.Count - 1)) if ban.Count < 3 else -1
 
 # Look-back period and max retries
 findtime = 30h
