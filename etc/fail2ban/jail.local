@@ -23,7 +23,7 @@ backend = %(sshd_backend)s
 
 # Define the ban time multipliers manually for escalation
 bantime.increment = true
-bantime.multipliers = 7200 28800 86400 -1  # Ban escalates: 2h, 8h, 1 day, then permanent
+bantime.multipliers = 7200 28800 86400 -1  # 2h, 8h, 1 day, then permanent
 
 # Look-back period and max retries
 findtime = 30h
