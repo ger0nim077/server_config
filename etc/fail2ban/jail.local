@@ -21,20 +21,23 @@ filter  = sshd
 logpath = %(sshd_log)s
 backend = %(sshd_backend)s
 
-# Define the ban time multipliers manually for escalation
+# Define the initial ban time and enable escalation
+bantime = 7200  # 2 hours
 bantime.increment = true
 bantime.multipliers = 7200 28800 86400 -1  # 2h, 8h, 1 day, then permanent
 
 # Look-back period and max retries
-findtime = 30h
+findtime = 108000  # 30 hours in seconds
 maxretry = 2
 
-# Actions for normal and permanent bans
+# Actions for normal bans
 action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
          custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Ban Applied for SSH"]
 
+# Actions for permanent bans (use when escalation reaches -1)
 action_ = iptables-multiport[name=SSH, port="22022", protocol=tcp, bantime=-1]
           custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Permanent Ban Applied for SSH"]
+
 
 
 
