@@ -21,24 +21,21 @@ filter  = sshd
 logpath = %(sshd_log)s
 backend = %(sshd_backend)s
 
-# Ban time and incremental settings for this jail only
-# 2 hours in seconds
-bantime = 7200
+# Define the ban time multipliers manually for escalation
 bantime.increment = true
-bantime.factor = 4
-bantime.formula = 7200 * (4 ** (ban.Count - 1)) if ban.Count < 3 else -1
+bantime.multipliers = 2h 8h 1d -1  # Ban escalates: 2h, 8h, 1 day, then permanent
 
 # Look-back period and max retries
 findtime = 30h
 maxretry = 2
 
-# Actions for normal bans
+# Actions for normal and permanent bans
 action = iptables-multiport[name=SSH, port="22022", protocol=tcp]
          custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Ban Applied for SSH"]
 
-# Custom action for permanent bans
 action_ = iptables-multiport[name=SSH, port="22022", protocol=tcp, bantime=-1]
           custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", subject="IMPORTANT: Permanent Ban Applied for SSH"]
+
 
 
 [nginx-forbidden]
