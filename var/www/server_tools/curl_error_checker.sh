@@ -28,7 +28,7 @@ send_email() {
 ERROR_COUNT=$(grep -c "cURL Error" "$ERROR_LOG")
 
 # Count the number of lines containing "Retry 3" in the retry log
-RETRY_COUNT=$(grep -c "Retry 3" "$RETRY_LOG")
+RETRY_COUNT=$(grep -c "Failed to fetch content" "$RETRY_LOG")
 
 # Send email with the error and retry counts
 send_email
