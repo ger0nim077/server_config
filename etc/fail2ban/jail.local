@@ -20,7 +20,7 @@ port    = 22022
 filter  = sshd
 logpath = %(sshd_log)s
 backend = %(sshd_backend)s
-logtimezone = system
+logtimezone = +02:00
 
 # Define the initial ban time and enable escalation
 bantime = 7200
