@@ -1,5 +1,8 @@
 # Last saved: 2024-09-09 12:57:00
 
+[DEFAULT]
+ignoreip = 127.0.0.1/8 ::1 188.26.62.224
+
 [mysql-auth]
 enabled  = true
 port     = 21221
