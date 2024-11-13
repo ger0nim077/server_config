@@ -1,11 +1,10 @@
 [Unit]
-Description=Booksoft Scraper Service
+Description=Scraper Services - Booksoft & Primapagina
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash /var/www/html/booksoft.ro/scraper/_master.sh
-
+ExecStart=/bin/bash -c "/var/www/html/booksoft.ro/scraper/_master.sh && /var/www/html/primapagina.ro/screens/_master.sh"
 RemainAfterExit=yes
 User=root
 
