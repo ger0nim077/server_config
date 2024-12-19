@@ -20,8 +20,8 @@ basedir                 = /usr
 port            	= 21221
 
 # Timeouts to prevent connection issues
-wait_timeout = 28800          # Maximum idle time before the server closes the connection (in seconds)
-interactive_timeout = 28800   # Maximum time for interactive sessions (e.g., from PHP)
+wait_timeout = 240          # Maximum idle time before the server closes the connection (in seconds)
+interactive_timeout = 240   # Maximum time for interactive sessions (e.g., from PHP)
 net_read_timeout = 60         # Maximum time to wait for a network packet from the client (in seconds)
 net_write_timeout = 60        # Maximum time to wait for data to be sent to the client (in seconds)
 
@@ -45,7 +45,7 @@ max_allowed_packet     = 128M # was 1G - Handle larger queries or data transmiss
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
 #myisam_recover_options = BACKUP
-max_connections        = 100
+max_connections        = 50
 #table_cache            = 64
 
 #
@@ -113,7 +113,7 @@ collation-server      = utf8mb4_general_ci
 # Read the manual for more InnoDB related options. There are many!
 # Most important is to give InnoDB 80 % of the system RAM for buffer use:
 # https://mariadb.com/kb/en/innodb-system-variables/#innodb_buffer_pool_size
-innodb_buffer_pool_size = 3G
+innodb_buffer_pool_size = 512M
 
 # this is only for embedded server
 [embedded]
