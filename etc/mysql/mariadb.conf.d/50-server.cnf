@@ -21,7 +21,7 @@ port            	= 21221
 
 # Timeouts to prevent connection issues
 wait_timeout = 240          # Maximum idle time before the server closes the connection (in seconds)
-interactive_timeout = 240   # Maximum time for interactive sessions (e.g., from PHP)
+interactive_timeout = 3600   # Maximum time for interactive sessions (e.g., from PHP)
 net_read_timeout = 60         # Maximum time to wait for a network packet from the client (in seconds)
 net_write_timeout = 60        # Maximum time to wait for data to be sent to the client (in seconds)
 
