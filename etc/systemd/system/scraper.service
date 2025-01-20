@@ -1,31 +1,14 @@
 [Unit]
 Description=Scraper Services - Booksoft & Primapagina
 After=network.target mysql.service
-Wants=network-online.target
 
 [Service]
-Type=forking
+Type=oneshot
 User=root
 Group=root
 WorkingDirectory=/var/www/html
-
-# Environment setup
-Environment=SCREENDIR=/var/run/screen
-
-# Run scripts in background
-ExecStart=/bin/bash -c '\
-    /var/www/html/booksoft.ro/scraper/_master.sh >> /var/www/html/booksoft.ro/scraper/logs/booksoft_master.log 2>&1 & \
-    /var/www/html/primapagina.ro/screens/_master.sh >> /var/www/html/primapagina.ro/logs/primapagina_master.log 2>&1'
-
-# Clean up on stop
-ExecStop=/bin/bash -c '\
-    pkill -f "WORKER_[A-Z]" || true; \
-    rm -f /tmp/*_scraper.lock /tmp/checker_*.lock'
-
-Restart=always
-RestartSec=60
-TimeoutStartSec=0
-TimeoutStopSec=300
+ExecStart=/bin/bash -c "/var/www/html/booksoft.ro/scraper/_master.sh >> /var/www/html/booksoft.ro/scraper/logs/booksoft_master.log 2>&1 && /var/www/html/primapagina.ro/screens/_master.sh >> /var/www/html/primapagina.ro/logs/primapagina_master.log 2>&1"
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
