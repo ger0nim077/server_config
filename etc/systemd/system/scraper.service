@@ -3,10 +3,13 @@ Description=Scraper Services - Booksoft & Primapagina
 After=network.target
 
 [Service]
-Type=oneshot
-ExecStart=/bin/bash -c "/var/www/html/booksoft.ro/scraper/_master.sh && /var/www/html/primapagina.ro/screens/_master.sh"
-RemainAfterExit=yes
-User=root
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/html
+ExecStart=/bin/bash -c "/booksoft.ro/scraper/_master.sh >> /var/www/html/booksoft.ro/scraper/logs/booksoft_master.log 2>&1"
+ExecStart=/bin/bash -c "/primapagina.ro/screens/_master.sh >> /var/www/html/primapagina.ro/logs/primapagina_master.log 2>&1"
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
