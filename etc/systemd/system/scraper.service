@@ -1,15 +1,54 @@
 [Unit]
 Description=Scraper Services - Booksoft & Primapagina
-After=network.target
+After=network.target mysql.service
+Wants=network-online.target
 
 [Service]
-Type=simple
+Type=forking
 User=www-data
+Group=www-data
 WorkingDirectory=/var/www/html
-ExecStart=/bin/bash -c "/booksoft.ro/scraper/_master.sh >> /var/www/html/booksoft.ro/scraper/logs/booksoft_master.log 2>&1"
-ExecStart=/bin/bash -c "/primapagina.ro/screens/_master.sh >> /var/www/html/primapagina.ro/logs/primapagina_master.log 2>&1"
-Restart=on-failure
-RestartSec=5
+
+# Added environment variables for PHP
+Environment=PHP_CLI_MAX_EXECUTION_TIME=0
+Environment=PHP_CLI_MEMORY_LIMIT=1G
+
+# Run scripts in background and store PIDs
+ExecStart=/bin/bash -c '\
+    /var/www/html/booksoft.ro/scraper/_master.sh >> /var/www/html/booksoft.ro/scraper/logs/booksoft_master.log 2>&1 & \
+    echo $! > /var/www/html/booksoft.ro/scraper/master.pid; \
+    /var/www/html/primapagina.ro/screens/_master.sh >> /var/www/html/primapagina.ro/logs/primapagina_master.log 2>&1 & \
+    echo $! > /var/www/html/primapagina.ro/screens/master.pid'
+
+# Cleanup PIDs on stop
+ExecStop=/bin/bash -c '\
+    kill $(cat /var/www/html/booksoft.ro/scraper/master.pid); \
+    kill $(cat /var/www/html/primapagina.ro/screens/master.pid); \
+    rm -f /var/www/html/booksoft.ro/scraper/master.pid; \
+    rm -f /var/www/html/primapagina.ro/screens/master.pid'
+
+Restart=always
+RestartSec=60
+
+# Longer timeouts for long-running scripts
+TimeoutStartSec=0
+TimeoutStopSec=300
+
+# Resource management
+LimitNOFILE=1048576
+CPUQuota=80%
+MemoryLimit=2G
+
+# Security measures
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
 
 [Install]
 WantedBy=multi-user.target
