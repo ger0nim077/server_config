@@ -8,6 +8,7 @@ User=root
 Group=root
 WorkingDirectory=/var/www/html
 ExecStart=/bin/bash -c "/var/www/html/booksoft.ro/scraper/_master.sh >> /var/www/html/booksoft.ro/scraper/logs/booksoft_master.log 2>&1 && /var/www/html/primapagina.ro/screens/_master.sh >> /var/www/html/primapagina.ro/logs/primapagina_master.log 2>&1"
+ExecStop=/bin/bash -c "for session in $(screen -ls | grep -o '[0-9]*\\.WORKER_[A-Z]*'); do screen -S $session -X quit; done"
 RemainAfterExit=yes
 
 [Install]
