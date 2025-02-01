@@ -20,8 +20,8 @@ basedir                 = /usr
 port            	= 21221
 
 # Timeouts to prevent connection issues
-wait_timeout = 90          # Maximum idle time before the server closes the connection (in seconds) default 300
-interactive_timeout = 90   # Maximum time for interactive sessions (e.g., from PHP) default 3600
+wait_timeout = 300          # Maximum idle time before the server closes the connection (in seconds) default 300
+interactive_timeout = 300   # Maximum time for interactive sessions (e.g., from PHP) default 3600
 net_read_timeout = 120         # Maximum time to wait for a network packet from the client (in seconds) default 60
 net_write_timeout = 120        # Maximum time to wait for data to be sent to the client (in seconds) default 60
 
