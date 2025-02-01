@@ -20,10 +20,10 @@ basedir                 = /usr
 port            	= 21221
 
 # Timeouts to prevent connection issues
-wait_timeout = 240          # Maximum idle time before the server closes the connection (in seconds)
+wait_timeout = 300          # Maximum idle time before the server closes the connection (in seconds)
 interactive_timeout = 3600   # Maximum time for interactive sessions (e.g., from PHP)
-net_read_timeout = 60         # Maximum time to wait for a network packet from the client (in seconds)
-net_write_timeout = 60        # Maximum time to wait for data to be sent to the client (in seconds)
+net_read_timeout = 120         # Maximum time to wait for a network packet from the client (in seconds) default 60
+net_write_timeout = 120        # Maximum time to wait for data to be sent to the client (in seconds) default 60
 
 
 # Broken reverse DNS slows down connections considerably and name resolve is
@@ -60,8 +60,8 @@ max_connections        = 50
 # Both location gets rotated by the cronjob.
 # Be aware that this log type is a performance killer.
 # Recommend only changing this at runtime for short testing periods if needed!
-#general_log_file       = /var/log/mysql/mysql.log
-#general_log            = 1
+general_log_file       = /var/log/mysql/mysql.log
+general_log            = 3
 
 # When running under systemd, error logging goes via stdout/stderr to journald
 # and when running legacy init error logging goes to syslog due to
@@ -127,3 +127,8 @@ innodb_buffer_pool_size = 512M
 # If you use the same .cnf file for MariaDB of different versions,
 # use this group for options that older servers don't understand
 [mariadb-10.11]
+
+
+# Connection and timeout settings
+connect_timeout = 60
+max_connect_errors = 100000
