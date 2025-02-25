@@ -18,6 +18,8 @@ ignoreip = 127.0.0.1/8 ::1 188.26.62.224 \
         197.234.240.0/22 \
         198.41.128.0/17
 
+usedns = no
+
 [mysql-auth]
 enabled  = true
 port     = 21221
@@ -73,6 +75,7 @@ maxretry = 1
 findtime = 3600  # 60 minutes
 bantime  = -1  # Permanent ban
 backend = polling
+usedns = no
 #journalmatch = "_SYSTEMD_UNIT=nginx.service + _COMM=nginx"
 action = iptables-allports[name=nginx-forbidden]
 #action = iptables-multiport[name=nginx-forbidden, port="http,https", protocol=tcp]
