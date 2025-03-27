@@ -12,6 +12,7 @@ LOG_FILES=(
     "/var/www/html/primapagina.ro/logs/mysqli_errors.log"
     "/var/www/html/primapagina.ro/logs/curl_retries.log"
     "/var/www/html/primapagina.ro/logs/error.log"
+    "/var/www/html/primapagina.ro/articles/logs/scraper_errors.log"
 
     "/var/log/php8.3-fpm.log"
     "/var/log/nginx/error.log"
