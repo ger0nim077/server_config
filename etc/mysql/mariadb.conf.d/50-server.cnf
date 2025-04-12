@@ -22,8 +22,8 @@ port            	= 21221
 # Timeouts to prevent connection issues
 wait_timeout = 600          # Maximum idle time before the server closes the connection (in seconds) default 300
 interactive_timeout = 600   # Maximum time for interactive sessions (e.g., from PHP) default 3600
-net_read_timeout = 120         # Maximum time to wait for a network packet from the client (in seconds) default 60
-net_write_timeout = 120        # Maximum time to wait for data to be sent to the client (in seconds) default 60
+net_read_timeout = 180         # Maximum time to wait for a network packet from the client (in seconds) default 60
+net_write_timeout = 180        # Maximum time to wait for data to be sent to the client (in seconds) default 60
 
 
 # Broken reverse DNS slows down connections considerably and name resolve is
