@@ -1,9 +1,9 @@
 #!/bin/bash
-chain="f2b-nginx-forbidden"
-while read -r line; do
-    if [[ "$line" == *googlebot.com* || "$line" == *cache.google.com* ]]; then
-        num=$(echo "$line" | awk '{print $1}')
-        echo "Removing rule #$num: $line"
-        sudo iptables -D $chain $num
+echo "Checking IPs against current iptables bans..."
+while read ip; do
+    if sudo iptables -L -n | grep -q -w "$ip"; then
+        echo "$ip IS CURRENTLY BANNED ❌"
+    else
+        echo "$ip is NOT currently banned ✅"
     fi
-done < <(sudo iptables -L $chain --line-numbers | grep -nE 'googlebot.com|cache.google.com' | sort -r -n | sed 's/^[0-9]*://')
+done < "/var/www/server_tools/iptables.txt"
