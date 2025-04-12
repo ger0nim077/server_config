@@ -29,7 +29,7 @@ findtime = 3600  # 1 hour
 #journalmatch = "_SYSTEMD_UNIT=mysql.service + _COMM=mysql"
 backend = auto
 action   = iptables[name=MySQL, port=21221, protocol=tcp]
-actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
+actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", jail="mysql-auth"]
 
 [sshd]
 enabled = true
@@ -76,4 +76,4 @@ usedns = no
 #journalmatch = "_SYSTEMD_UNIT=nginx.service + _COMM=nginx"
 action = iptables-allports[name=nginx-forbidden]
 #action = iptables-multiport[name=nginx-forbidden, port="http,https", protocol=tcp]
-actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro"]
+actionban = custom-msmtp[destemail="tvasile@gmail.com", sender="scraper@booksoft.ro", jail="nginx-forbidden"]
