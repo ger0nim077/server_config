@@ -6,4 +6,4 @@ while read ip; do
     else
         echo "$ip is NOT currently banned"
     fi
-done < iptables.txt
+done < "/var/www/server_tools/iptables.txt"
