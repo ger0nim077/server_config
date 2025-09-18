@@ -13,7 +13,7 @@ else
   echo "Current ChromeDriver: not installed"
 fi
 
-# Installed Chrome version
+# Installed Chrome/Chromium version
 if command -v google-chrome >/dev/null 2>&1; then
   CHROME_VER="$(google-chrome --version | awk '{print $3}')"
   echo "Installed Google Chrome: $CHROME_VER"
@@ -31,9 +31,10 @@ echo "Target ChromeDriver to install: $VER"
 
 # --- Compare versions ---
 if [[ "$CURR_DRV_VER" == "$VER" ]]; then
-  echo "ChromeDriver is already at the correct version ($VER). Reinstalling..."
+  echo "✅ ChromeDriver already matches Chrome version ($VER). Skipping installation."
+  exit 0
 else
-  echo "Updating ChromeDriver from $CURR_DRV_VER to $VER ..."
+  echo "⬆️  Updating ChromeDriver from $CURR_DRV_VER to $VER ..."
 fi
 
 # --- Build download URL ---
